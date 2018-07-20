@@ -31,7 +31,7 @@ import { Indicator } from 'mint-ui';
 export default {
 
   name: 'home',
-
+  
   data () {
     return {
       datalist:[],
@@ -42,7 +42,7 @@ export default {
   mounted (){
   	//数据请求
   	//https://m.maizuo.com/v4/api/billboard/home?__t=1514532132963
-    
+    this.$store.commit("kerwinchangetitle","卖座电影");
     Indicator.open('加载中...');
   	axios.get("/v4/api/billboard/home?__t=1514532132963").then(res=>{
   		console.log(res.data); // 后端响应数据的位置

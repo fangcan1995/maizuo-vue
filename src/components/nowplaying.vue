@@ -1,6 +1,6 @@
 <template>
 	<div>
-
+    
 	<ul 
   v-infinite-scroll="loadMore"
   infinite-scroll-disabled="loading"
@@ -28,74 +28,79 @@
 <script>
 import axios from "axios";
 import router from "@/router";
-
+import { mapGetters } from "vuex";
 
 export default {
+  name: "nowplaying",
 
-  name: 'nowplaying',
-
-  data () {
+  data() {
     return {
-    	datalist:[],
-      loading:false,
-      current:1,
-      total:0,
-      mytext:"正在加载中...."
+      datalist: [],
+      loading: false,
+      current: 1,
+      total: 0,
+      mytext: "正在加载中...."
+    };
+  },
+
+  mounted() {
+    // offset =28 &count=7
+    axios.get("/v4/api/film/now-playing?page=1&count=7").then(res => {
+      console.log(res.data);
+      this.datalist = res.data.data.films;
+      this.total = res.data.data.page.total; //总页数
+    });
+
+    if (!this.getNowListFilms.length) {
+      this.$store.dispatch("nowplayingaction"); // 传递到store 中的action中
     }
   },
-
-
-  mounted () {
-    // offset =28 &count=7
-    axios.get("/v4/api/film/now-playing?page=1&count=7").then(res=>{
-      console.log(res.data);
-      this.datalist =res.data.data.films;
-      this.total = res.data.data.page.total; //总页数
-    })
+  computed: {
+    ...mapGetters(["getNowListFilms", "getNowTotal"])
   },
+  methods: {
+    handleClick(name, index) {
+      //js 实现路由跳转 ---> 编程式导航
+      //
+      //router.push(`/detail/${index}`); // /detail/
 
-  methods:{
-  	handleClick(name,index){
-  		//js 实现路由跳转 ---> 编程式导航
-  		//
-  		//router.push(`/detail/${index}`); // /detail/
-  	
       //把当前的结果 存到store中。
-      
-      this.$store.commit("kerwinchangetitle",name)
 
+      this.$store.commit("kerwinchangetitle", name);
 
-  		router.push({name:"mydetail",params:{id:index}});
-  	},
+      router.push({ name: "mydetail", params: { id: index } });
+    },
 
-    loadMore(){
+    loadMore() {
       console.log("底部了");
+      return;
       this.current++;
-      if(this.current>this.total){
-        this.mytext= "没有更多数据了";
-        this.loading = true;// 禁用滚动加载功能
+      if (this.current > this.total) {
+        this.mytext = "没有更多数据了";
+        this.loading = true; // 禁用滚动加载功能
         return;
       }
 
-      axios.get(`/v4/api/film/now-playing?page=${this.current}&count=7`).then(res=>{
-        console.log(res.data);
-        this.datalist =[...this.datalist,...res.data.data.films]
-      })
+      axios
+        .get(`/v4/api/film/now-playing?page=${this.current}&count=7`)
+        .then(res => {
+          console.log(res.data);
+          this.datalist = [...this.datalist, ...res.data.data.films];
+        });
     }
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>
-
-  ul{
-    li{
-      overflow: hidden;
-      padding: 10px;
-      img{
-        float:left;
-        width: 100px;
-      }
+ul {
+  li {
+    overflow: hidden;
+    padding: 10px;
+    img {
+      float: left;
+      width: 100px;
     }
   }
+}
 </style>
