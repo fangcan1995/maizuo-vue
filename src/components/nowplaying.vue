@@ -11,7 +11,7 @@
 			{{data}}   （声明式导航）
 		</router-link> -->
 
-		<li v-for="(data,index) in datalist" @click="handleClick(data.name,data.id)" :key="data.id">
+		<li v-for="(data,index) in getNowListFilms" @click="handleClick(data.name,data.id)" :key="data.id">
 			  <img :src="data.poster.origin"/>
         <div>
           <h3>{{data.name}}</h3>
@@ -28,7 +28,7 @@
 <script>
 import axios from "axios";
 import router from "@/router";
-import { mapGetters } from "vuex";
+import { mapGetters, mapState } from "vuex";
 
 export default {
   name: "nowplaying",
@@ -45,18 +45,19 @@ export default {
 
   mounted() {
     // offset =28 &count=7
-    axios.get("/v4/api/film/now-playing?page=1&count=7").then(res => {
-      console.log(res.data);
-      this.datalist = res.data.data.films;
-      this.total = res.data.data.page.total; //总页数
-    });
+    // axios.get("/v4/api/film/now-playing?page=1&count=7").then(res => {
+    //   console.log(res.data);
+    //   this.datalist = res.data.data.films;
+    //   this.total = res.data.data.page.total; //总页数
+    // });
 
     if (!this.getNowListFilms.length) {
       this.$store.dispatch("nowplayingaction"); // 传递到store 中的action中
     }
   },
   computed: {
-    ...mapGetters(["getNowListFilms", "getNowTotal"])
+    ...mapGetters(["getNowListFilms", "getNowTotal"]),
+    ...mapState(['nowplayingcurrentpage'])
   },
   methods: {
     handleClick(name, index) {
@@ -72,21 +73,22 @@ export default {
     },
 
     loadMore() {
-      console.log("底部了");
-      return;
+      console.log("底部了",this.getNowTotal);
+      // return;
       this.current++;
-      if (this.current > this.total) {
+      this.$store.commit('nowplayingcurrentpage')
+      if (this.nowplayingcurrentpage > this.getNowTotal) {
         this.mytext = "没有更多数据了";
         this.loading = true; // 禁用滚动加载功能
         return;
       }
-
-      axios
-        .get(`/v4/api/film/now-playing?page=${this.current}&count=7`)
-        .then(res => {
-          console.log(res.data);
-          this.datalist = [...this.datalist, ...res.data.data.films];
-        });
+      this.$store.dispatch("nowplayingmoreaction",this.nowplayingcurrentpage)
+      // axios
+      //   .get(`/v4/api/film/now-playing?page=${this.current}&count=7`)
+      //   .then(res => {
+      //     console.log(res.data);
+      //     this.datalist = [...this.datalist, ...res.data.data.films];
+      //   });
     }
   }
 };

@@ -7,10 +7,14 @@ import  axios from "axios";
 const store = new Vuex.Store({
 	state:{
 		title:"卖座电影",
-		comingsoon:null,
 		nowplaying:null,
 		nowplayingmore:null,
-		nowfilms:[]
+		nowfilms:[],
+		nowplayingcurrentpage:1,
+		comingSooncurrentpage:1,
+		comfilms:[],
+		comingsoon:null,
+		comingsoonmore:null,
 	},
 
 	actions:{
@@ -27,25 +31,39 @@ const store = new Vuex.Store({
 				console.log(res.data);
 				store.commit("kerwinnowplaying",res.data);
 			})
+		},
+		nowplayingmoreaction:function(store,payload){
+			console.log(payload)
+			axios.get(`/v4/api/film/now-playing?page=${payload}&count=7`).then(res=>{
+				console.log(res.data);
+				store.commit("nowplayingmroe",res.data);
+			})
+		},
+		comingSoonMoreAction:(store,payload)=>{
+			console.log(payload)
+			axios.get(`v4/api/film/coming-soon?page=${payload}&count=7`).then(res=>{
+				console.log(res.data)
+				store.commit("comingSoonMore",res.data)
+			})
 		}
 	},
 
 
 	getters:{
 		getComingListFilms:function(state){
-			return state.comingsoon?state.comingsoon.data.films:[]
+			state.comfilms=[...state.comfilms,...state.comingsoonmore?state.comingsoonmore.data.films:state.comingsoon?state.comingsoon.data.films:[]]
+			return state.comfilms
 		},
 		getComingTotal:function(state){
 			return state.comingsoon?state.comingsoon.data.page.total:0
 		},
 		getNowListFilms:function(state){
-			debugger
 			state.nowfilms=[...state.nowfilms,...state.nowplayingmore?state.nowplayingmore.data.films:state.nowplaying?state.nowplaying.data.films:[]] 	
 			return state.nowfilms
 		},
 		getNowTotal:function(state){
 			return state.nowplaying?state.nowplaying.data.page.total:0
-		}
+		},
 	},
 
 	mutations:{
@@ -59,6 +77,18 @@ const store = new Vuex.Store({
 		},
 		kerwinnowplaying:function(state,payload){
 			state.nowplaying = payload
+		},
+		nowplayingmroe:(state,payload)=>{
+			state.nowplayingmore = payload
+		},
+		nowplayingcurrentpage:(state,payload)=>{
+			state.nowplayingcurrentpage = state.nowplayingcurrentpage+1
+		},
+		comingSooncurrentpage:(state,payload)=>{
+			state.comingSooncurrentpage = state.comingSooncurrentpage+1
+		},
+		comingSoonMore:(state,payload)=>{
+			state.comingsoonmore = payload
 		}
 	}
 })
